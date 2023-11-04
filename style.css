@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500&display=swap');
+
+* {
+    margin: 0;
+    box-sizing: border-box;
+    padding: 0;
+}
+body {
+    background-color: rgb(17, 17, 28);
+    font-family: 'Roboto';
+    color: #fff;
+}
+
+.mb-20 {
+    margin-bottom: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    padding: 2rem;
+    margin: 20px auto;
+}
+
+form input {
+    display: none;
+}
+
+form {
+    text-align: center;
+    padding: 2rem;
+}
+
+form label {
+    padding: 1rem 2rem;
+    font-family: 'Roboto';
+    margin: 0;
+    background-color: rgb(2, 2, 48);
+    border: 1px solid transparent;
+    transition: border .4s ease-in-out;
+    cursor: pointer;
+}
+
+form label:hover {
+    border: 1px solid rgb(98, 98, 98);
+}
+
+form label:first-of-type {
+    border-bottom-left-radius: 10px;
+    border-top-left-radius: 10px;
+}
+
+form label:last-of-type {
+    border-top-right-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+form button {
+    display: block;
+    border-style: none;
+    background-color: transparent;
+    color: white;
+    margin: 3rem auto 1rem;
+    padding: 20px 40px;
+    border: 1px solid white;
+    cursor: pointer;
+    border-radius: 20px;
+    text-transform: uppercase;
+}
+
+form button:hover {
+    background-color: #ffffff0a;
+}
+.response-container {
+    padding: 20px;
+}
+
+.response-container img {
+    width: 400px;
+    margin-right: 3rem;
+}
+
+.response-container h2 {
+    line-height: 2.2;
+}
+
+.response-container i {
+    margin-bottom: 1rem;
+    padding-right: 5px;
+}
+
+.response-container .air-date,
+.response-container .release-date {
+    margin-bottom: 1rem;
+}
+
+h1,
+h3 {
+    font-weight: 200;
+    text-align: center;
+}
+
+i.fa-star {
+    color: yellow;
+}
+
+.response-container {
+    display: flex;
+}
+
+.overlay {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vw;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    opacity: .1;
+}
