@@ -71,6 +71,7 @@ form button:hover {
     background-color: #ffffff0a;
 }
 .response-container {
+    display: flex;
     padding: 20px;
 }
 
@@ -103,10 +104,6 @@ i.fa-star {
     color: yellow;
 }
 
-.response-container {
-    display: flex;
-}
-
 .overlay {
     background-size: cover;
     background-position: center;
@@ -118,4 +115,19 @@ i.fa-star {
     left: 0;
     z-index: -1;
     opacity: .1;
+}
+
+@media (max-width: 777px) {
+    .response-container {
+        flex-direction: column;
+    }
+
+    .response-container {
+        padding: 10px;
+    }
+
+    .response-container img {
+        border: 2px solid white;
+        margin: 0 auto;
+    }
 }
