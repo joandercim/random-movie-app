@@ -129,5 +129,6 @@ i.fa-star {
     .response-container img {
         border: 2px solid white;
         margin: 0 auto;
+        width: 80%;
     }
 }
