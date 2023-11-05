@@ -3,6 +3,7 @@ class App {
     this.addEventListeners();
     this.movies;
     this.userChoice = '';
+    this.randNumbersUsed = [];
   }
 
   addEventListeners(e) {
@@ -16,25 +17,21 @@ class App {
 
   handleSubmit(e) {
     e.preventDefault();
-      const radioTV = document.getElementById('tv-radio');
-      const radioMovie = document.getElementById('movie-radio');
-      
-      
+    const radioTV = document.getElementById('tv-radio');
+    const radioMovie = document.getElementById('movie-radio');
+
     if (radioTV.checked) {
       this.userChoice = 'series';
-      this.fetchSeries();
+      this.fetchMoviesOrSeries('tv');
     } else if (radioMovie.checked) {
-      this.fetchMovies();
+      this.fetchMoviesOrSeries('movie');
     } else {
-        alert('You have to choose series or movies')
-        return;
+      alert('You have to choose series or movies');
+      return;
     }
   }
 
-  async fetchSeries() {
-    const randNum = Math.floor(Math.random() * 20);
-    console.log(randNum);
-
+  async fetchMoviesOrSeries(type) {
     const options = {
       method: 'GET',
       headers: {
@@ -44,45 +41,25 @@ class App {
       },
     };
 
-    const res = await fetch(`https://api.themoviedb.org/3/tv/popular`, options);
+    const res = await fetch(
+      `https://api.themoviedb.org/3/${type}/popular`,
+      options
+    );
 
     try {
       if (!res.ok) {
         throw new Error(`Response was not ok. Error: ${Error}`);
       }
-
       const data = await res.json();
       const { results } = data;
-      console.log(results);
-      this.displaySeries(results[randNum]);
-    } catch (error) {
-      console.log(error);
-    }
-  }
 
-  async fetchMovies() {
-    const randNum = Math.floor(Math.random() * 20);
+      const randomNumber = Math.floor(Math.random() * results.length);
 
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZTYxZTBiNjFlYTY5MDhlM2IzNGZkYzhlMDViZGQwZCIsInN1YiI6IjY0MjAxNmZlMmRjOWRjMDBmZDFiMzZiMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.f5VD8-Y1HJ8yI6ISuM9nql6F5sWAnPO7eZTs3cEa2O0',
-      },
-    };
-
-    const res = await fetch(`https://api.themoviedb.org/3/movie/popular`, options);
-
-    try {
-      if (!res.ok) {
-        throw new Error(`Response was not ok. Error: ${Error}`);
+      if (type === 'tv') {
+        this.displaySeries(results[randomNumber]);
+      } else {
+        this.displayMovie(results[randomNumber]);
       }
-
-      const data = await res.json();
-      const { results } = data;
-      console.log(results);
-      this.displayMovie(results[randNum]);
     } catch (error) {
       console.log(error);
     }
@@ -90,8 +67,6 @@ class App {
 
   displaySeries(show) {
     const imgUrl = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
-
-    console.log(show);
     // Set backdrop
     document.querySelector(
       '.overlay'
@@ -134,20 +109,23 @@ class App {
         `;
   }
 
-    setType(e) {
-        e.stopPropagation()
-        if (e.target.className !== 'buttons') {
-            if (e.target.id === 'movie-radio') {
-                document.querySelector('label:first-of-type').style.border = '1px solid rgb(98, 98, 98)';
-                document.querySelector('label:last-of-type').style.border = '1px solid transparent';
-                document.querySelector('button').textContent = 'Generate Movie';
-            } else if (e.target.id === 'tv-radio'){
-                document.querySelector('label:first-of-type').style.border = '1px solid transparent';
-                document.querySelector('label:last-of-type').style.border = '1px solid rgb(98, 98, 98)';
-                document.querySelector('button').textContent = 'Generate Series';
-                
-            }
-        }
+  setType(e) {
+    e.stopPropagation();
+    if (e.target.className !== 'buttons') {
+      if (e.target.id === 'movie-radio') {
+        document.querySelector('label:first-of-type').style.border =
+          '1px solid yellow';
+        document.querySelector('label:last-of-type').style.border =
+          '1px solid transparent';
+        document.querySelector('button').textContent = 'Generate Movie';
+      } else if (e.target.id === 'tv-radio') {
+        document.querySelector('label:first-of-type').style.border =
+          '1px solid transparent';
+        document.querySelector('label:last-of-type').style.border =
+          '1px solid yellow';
+        document.querySelector('button').textContent = 'Generate Series';
+      }
+    }
   }
 }
 
