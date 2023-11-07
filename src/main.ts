@@ -1,8 +1,16 @@
-// App class interface
 class App {
   constructor() {
     this.loadEventListeners();
   }
+
+  private options: RequestInit = {
+    method: 'GET',
+    headers: {
+      accept: 'application/json',
+      Authorization:
+        'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZTYxZTBiNjFlYTY5MDhlM2IzNGZkYzhlMDViZGQwZCIsInN1YiI6IjY0MjAxNmZlMmRjOWRjMDBmZDFiMzZiMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.f5VD8-Y1HJ8yI6ISuM9nql6F5sWAnPO7eZTs3cEa2O0',
+    },
+  };
 
   loadEventListeners() {
     const form: HTMLFormElement | null = document.querySelector('form');
@@ -34,25 +42,16 @@ class App {
   }
 
   async fetchMoviesOrSeries(type: string) {
-    const options: RequestInit = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization:
-          'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZTYxZTBiNjFlYTY5MDhlM2IzNGZkYzhlMDViZGQwZCIsInN1YiI6IjY0MjAxNmZlMmRjOWRjMDBmZDFiMzZiMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.f5VD8-Y1HJ8yI6ISuM9nql6F5sWAnPO7eZTs3cEa2O0',
-      },
-    };
-
     const res = await fetch(
       `https://api.themoviedb.org/3/${type}/popular`,
-      options
+      this.options
     );
 
     try {
       if (!res.ok) {
         throw new Error(`Response was not ok. Error: ${Error}`);
       }
-      const data: ApiResponse = await res.json();
+      const data: ApiResponsePopular = await res.json();
       const { results } = data;
 
       const randomNumber = Math.floor(Math.random() * results.length);
@@ -67,7 +66,7 @@ class App {
     }
   }
 
-  displaySeries(show: ResultsInterface) {
+  async displaySeries(show: PopularResultsInterface) {
     const imgUrl: string = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
     const releaseDate = show.first_air_date;
     const responseContainer = document.querySelector(
@@ -88,11 +87,49 @@ class App {
   
               <p class="air-date">First Air Date: ${releaseDate}</p>
               <p>${show.overview}</p>
+              <ul>
+                <li>test</li>
+                <li>test</li>
+                <li>test</li>
+              </ul>
           </div>
           `;
   }
 
-  displayMovie(movie: ResultsInterface) {
+  async checkIsStreaming(type: string, id: number) {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/${type}/${id}/watch/providers`,
+      this.options
+    );
+
+    try {
+      if (!res.ok) {
+        throw new Error(`Response was not ok. Error: ${Error}`);
+      }
+      const data: StreamingResultsInterface = await res.json();
+
+      if (data.results.SE) {
+        return data.results.SE;
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async displayMovie(movie: PopularResultsInterface) {
+    let streamingServicesBuy;
+    let streamingServicesRent;
+    const streamingAt = await this.checkIsStreaming('movie', movie.id);
+
+    if (streamingAt !== undefined) {
+      streamingServicesRent = streamingAt.rent;
+      streamingServicesBuy = streamingAt.buy;
+
+      console.log(streamingServicesBuy);
+    }
+
     const releaseDate = movie.release_date;
     const imgUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
     const overlayDiv = document.querySelector('.overlay') as HTMLDivElement;
@@ -110,9 +147,15 @@ class App {
             <p><i class="fa-solid fa-star"></i>${movie.vote_average.toFixed(
               1
             )}/10</p>
-
             <p class="air-date">Release Date: ${releaseDate}</p>
             <p>${movie.overview}</p>
+            <div class="rent">
+              <ul>
+              ${streamingServicesRent ? streamingServicesRent?.map(service => {
+                return `<li>${service.provider_name}</li>`
+              }).join('') : ''}
+              </ul>
+            </div>
         </div>
         `;
   }
@@ -149,11 +192,29 @@ class App {
   }
 }
 
-interface ApiResponse {
-  results: ResultsInterface[];
+interface ApiResponsePopular {
+  results: PopularResultsInterface[];
 }
 
-interface ResultsInterface {
+interface StreamingResultsInterface {
+  id: number;
+  results: {
+    SE: {
+      link: string;
+      buy: StreamingProvider[];
+      rent: StreamingProvider[];
+    };
+  };
+}
+
+interface StreamingProvider {
+  display_priority: number;
+  logo_path: string
+  provider_id: number;
+  provider_name: string;
+}
+
+interface PopularResultsInterface {
   adult: boolean;
   backdrop_path: string;
   genre_ids: number[];

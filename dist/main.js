@@ -8,9 +8,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-// App class interface
 class App {
     constructor() {
+        this.options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZTYxZTBiNjFlYTY5MDhlM2IzNGZkYzhlMDViZGQwZCIsInN1YiI6IjY0MjAxNmZlMmRjOWRjMDBmZDFiMzZiMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.f5VD8-Y1HJ8yI6ISuM9nql6F5sWAnPO7eZTs3cEa2O0',
+            },
+        };
         this.loadEventListeners();
     }
     loadEventListeners() {
@@ -41,14 +47,7 @@ class App {
     }
     fetchMoviesOrSeries(type) {
         return __awaiter(this, void 0, void 0, function* () {
-            const options = {
-                method: 'GET',
-                headers: {
-                    accept: 'application/json',
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI4ZTYxZTBiNjFlYTY5MDhlM2IzNGZkYzhlMDViZGQwZCIsInN1YiI6IjY0MjAxNmZlMmRjOWRjMDBmZDFiMzZiMiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.f5VD8-Y1HJ8yI6ISuM9nql6F5sWAnPO7eZTs3cEa2O0',
-                },
-            };
-            const res = yield fetch(`https://api.themoviedb.org/3/${type}/popular`, options);
+            const res = yield fetch(`https://api.themoviedb.org/3/${type}/popular`, this.options);
             try {
                 if (!res.ok) {
                     throw new Error(`Response was not ok. Error: ${Error}`);
@@ -69,14 +68,15 @@ class App {
         });
     }
     displaySeries(show) {
-        const imgUrl = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
-        const releaseDate = show.first_air_date;
-        const responseContainer = document.querySelector('.response-container');
-        // Set backdrop
-        const overlayDiv = document.querySelector('.overlay');
-        overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`;
-        // Set information
-        responseContainer.innerHTML = `
+        return __awaiter(this, void 0, void 0, function* () {
+            const imgUrl = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
+            const releaseDate = show.first_air_date;
+            const responseContainer = document.querySelector('.response-container');
+            // Set backdrop
+            const overlayDiv = document.querySelector('.overlay');
+            overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`;
+            // Set information
+            responseContainer.innerHTML = `
           <img src="${imgUrl}" class="poster" alt="${show.name}">
           <div class="information">
           <h2>${show.name}</h2>
@@ -84,27 +84,69 @@ class App {
   
               <p class="air-date">First Air Date: ${releaseDate}</p>
               <p>${show.overview}</p>
+              <ul>
+                <li>test</li>
+                <li>test</li>
+                <li>test</li>
+              </ul>
           </div>
           `;
+        });
+    }
+    checkIsStreaming(type, id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const res = yield fetch(`https://api.themoviedb.org/3/${type}/${id}/watch/providers`, this.options);
+            try {
+                if (!res.ok) {
+                    throw new Error(`Response was not ok. Error: ${Error}`);
+                }
+                const data = yield res.json();
+                if (data.results.SE) {
+                    return data.results.SE;
+                }
+                else {
+                    return undefined;
+                }
+            }
+            catch (error) {
+                console.log(error);
+            }
+        });
     }
     displayMovie(movie) {
-        const releaseDate = movie.release_date;
-        const imgUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-        const overlayDiv = document.querySelector('.overlay');
-        const responseContainer = document.querySelector('.response-container');
-        // Set backdrop
-        overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-        // Set information
-        responseContainer.innerHTML = `
+        return __awaiter(this, void 0, void 0, function* () {
+            let streamingServicesBuy;
+            let streamingServicesRent;
+            const streamingAt = yield this.checkIsStreaming('movie', movie.id);
+            if (streamingAt !== undefined) {
+                streamingServicesRent = streamingAt.rent;
+                streamingServicesBuy = streamingAt.buy;
+                console.log(streamingServicesBuy);
+            }
+            const releaseDate = movie.release_date;
+            const imgUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+            const overlayDiv = document.querySelector('.overlay');
+            const responseContainer = document.querySelector('.response-container');
+            // Set backdrop
+            overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
+            // Set information
+            responseContainer.innerHTML = `
         <img src="${imgUrl}" class="poster" alt="${movie.title}">
         <div class="information">
         <h2>${movie.title}</h2>
             <p><i class="fa-solid fa-star"></i>${movie.vote_average.toFixed(1)}/10</p>
-
             <p class="air-date">Release Date: ${releaseDate}</p>
             <p>${movie.overview}</p>
+            <div class="rent">
+              <ul>
+              ${streamingServicesRent ? streamingServicesRent === null || streamingServicesRent === void 0 ? void 0 : streamingServicesRent.map(service => {
+                return `<li>${service.provider_name}</li>`;
+            }).join('') : ''}
+              </ul>
+            </div>
         </div>
         `;
+        });
     }
     setType(e) {
         if (e.target && e.target instanceof HTMLElement) {
