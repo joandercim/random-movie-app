@@ -1,12 +1,12 @@
 class App {
   constructor() {
-    this.addEventListeners();
+    this.loadEventListeners();
     this.movies;
     this.userChoice = '';
     this.randNumbersUsed = [];
   }
 
-  addEventListeners(e) {
+  loadEventListeners(e) {
     document
       .querySelector('form')
       .addEventListener('submit', this.handleSubmit.bind(this));
