@@ -151,9 +151,15 @@ class App {
             <p>${movie.overview}</p>
             <div class="rent">
               <ul>
-              ${streamingServicesRent ? streamingServicesRent?.map(service => {
-                return `<li>${service.provider_name}</li>`
-              }).join('') : ''}
+              ${
+                streamingServicesRent
+                  ? streamingServicesRent
+                      ?.map((service) => {
+                        return `<li>${service.provider_name}</li>`;
+                      })
+                      .join('')
+                  : ''
+              }
               </ul>
             </div>
         </div>
@@ -209,7 +215,7 @@ interface StreamingResultsInterface {
 
 interface StreamingProvider {
   display_priority: number;
-  logo_path: string
+  logo_path: string;
   provider_id: number;
   provider_name: string;
 }

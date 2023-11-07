@@ -139,9 +139,11 @@ class App {
             <p>${movie.overview}</p>
             <div class="rent">
               <ul>
-              ${streamingServicesRent ? streamingServicesRent === null || streamingServicesRent === void 0 ? void 0 : streamingServicesRent.map(service => {
-                return `<li>${service.provider_name}</li>`;
-            }).join('') : ''}
+              ${streamingServicesRent
+                ? streamingServicesRent === null || streamingServicesRent === void 0 ? void 0 : streamingServicesRent.map((service) => {
+                    return `<li>${service.provider_name}</li>`;
+                }).join('')
+                : ''}
               </ul>
             </div>
         </div>
