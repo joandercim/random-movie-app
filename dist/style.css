@@ -104,6 +104,31 @@ i.fa-star {
     color: yellow;
 }
 
+.streaming-services {
+    margin-top: 2rem;
+    display: flex;
+    flex-grow: 2;
+}
+
+.rent,
+.buy {
+    padding: 1rem 0 1.7rem;
+    min-width: 50%;
+}
+
+.rent h5, 
+.buy h5 {
+    font-size: 1rem;
+    font-weight: 400;
+    padding-bottom: 1rem;
+    
+}
+
+.rent ul,
+.buy ul {
+    list-style: none;
+}
+
 .overlay {
     background-size: cover;
     background-position: center;

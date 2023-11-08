@@ -1,4 +1,13 @@
 class App {
+  // SAKTAR PARAMETRARNA HÄR NER APPEN?
+  // ATT GÖRA: Fixa en spinner?
+
+  private streamingServicesBuy: any[] | undefined;
+  private streamingServicesRent: any[] | undefined;
+  private rentHTML: string | undefined;
+  private buyHTML: string | undefined;
+
+
   constructor() {
     this.loadEventListeners();
   }
@@ -36,7 +45,7 @@ class App {
     } else if (radioMovie.checked) {
       this.fetchMoviesOrSeries('movie');
     } else {
-      alert('You have to choose movie or series');
+      alert('You have to select movie or series');
       return;
     }
   }
@@ -67,11 +76,39 @@ class App {
   }
 
   async displaySeries(show: PopularResultsInterface) {
+
+
+    const streamingAt = await this.checkIsStreaming('tv', show.id);
+
+    if (streamingAt !== undefined) {
+      this.streamingServicesRent = streamingAt.rent;
+      this.streamingServicesBuy = streamingAt.buy;
+
+      this.rentHTML = `
+      <h5>Rent series at:</h5>
+      <ul>
+      ${this.streamingServicesRent?.map((service) => {
+          return `<li>${service.provider_name}</li>`
+        }).join('')}
+      </ul>
+      `
+
+      this.buyHTML = `
+      <h5>Buy series at:</h5>
+      <ul>
+      ${this.streamingServicesBuy?.map((service) => {
+          return `<li>${service.provider_name}</li>`;
+        }).join('')}
+      </ul>
+      `
+    }
+
     const imgUrl: string = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
     const releaseDate = show.first_air_date;
     const responseContainer = document.querySelector(
       '.response-container'
     ) as HTMLDivElement;
+
     // Set backdrop
     const overlayDiv = document.querySelector('.overlay') as HTMLDivElement;
     overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`;
@@ -80,54 +117,48 @@ class App {
     responseContainer.innerHTML = `
           <img src="${imgUrl}" class="poster" alt="${show.name}">
           <div class="information">
-          <h2>${show.name}</h2>
-              <p><i class="fa-solid fa-star"></i>${show.vote_average.toFixed(
-                1
-              )}/10</p>
-  
-              <p class="air-date">First Air Date: ${releaseDate}</p>
-              <p>${show.overview}</p>
-              <ul>
-                <li>test</li>
-                <li>test</li>
-                <li>test</li>
-              </ul>
+            <h2>${show.name}</h2>
+                <p><i class="fa-solid fa-star"></i>${show.vote_average.toFixed(
+                  1
+                )}/10</p>
+                <p class="air-date">First Air Date: ${releaseDate}</p>
+                <p>${show.overview}</p>
+                <div class="streaming-services">
+                <div class="rent">
+                  ${this.streamingServicesRent ? this.rentHTML : ''}
+                </div>
+                <div class="buy">
+                  ${this.streamingServicesBuy ? this.buyHTML : ''}
+                </div>
+              </div>
           </div>
           `;
   }
 
-  async checkIsStreaming(type: string, id: number) {
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${type}/${id}/watch/providers`,
-      this.options
-    );
-
-    try {
-      if (!res.ok) {
-        throw new Error(`Response was not ok. Error: ${Error}`);
-      }
-      const data: StreamingResultsInterface = await res.json();
-
-      if (data.results.SE) {
-        return data.results.SE;
-      } else {
-        return undefined;
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
   async displayMovie(movie: PopularResultsInterface) {
-    let streamingServicesBuy;
-    let streamingServicesRent;
     const streamingAt = await this.checkIsStreaming('movie', movie.id);
 
     if (streamingAt !== undefined) {
-      streamingServicesRent = streamingAt.rent;
-      streamingServicesBuy = streamingAt.buy;
+      this.streamingServicesRent = streamingAt.rent;
+      this.streamingServicesBuy = streamingAt.buy;
 
-      console.log(streamingServicesBuy);
+      this.rentHTML = `
+      <h5>Rent movie at:</h5>
+      <ul>
+      ${this.streamingServicesRent?.map((service) => {
+          return `<li>${service.provider_name}</li>`
+        }).join('')}
+      </ul>
+      `
+
+      this.buyHTML = `
+      <h5>Buy movie at:</h5>
+      <ul>
+      ${this.streamingServicesBuy?.map((service) => {
+          return `<li>${service.provider_name}</li>`;
+        }).join('')}
+      </ul>
+      `
     }
 
     const releaseDate = movie.release_date;
@@ -149,21 +180,38 @@ class App {
             )}/10</p>
             <p class="air-date">Release Date: ${releaseDate}</p>
             <p>${movie.overview}</p>
-            <div class="rent">
-              <ul>
-              ${
-                streamingServicesRent
-                  ? streamingServicesRent
-                      ?.map((service) => {
-                        return `<li>${service.provider_name}</li>`;
-                      })
-                      .join('')
-                  : ''
-              }
-              </ul>
+            <div class="streaming-services">
+              <div class="rent">
+                ${this.streamingServicesRent ? this.rentHTML : 'This movie is not available for streaming in Sweden.'}
+              </div>
+              <div class="buy">
+                ${this.streamingServicesBuy ? this.buyHTML : 'This movie is not available for purchase in Sweden.'}
+              </div>
             </div>
         </div>
         `;
+  }
+
+  async checkIsStreaming(type: string, id: number) {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/${type}/${id}/watch/providers?justWatch`,
+      this.options
+    );
+
+    try {
+      if (!res.ok) {
+        throw new Error(`Response was not ok. Error: ${Error}`);
+      }
+      const data: StreamingResultsInterface = await res.json();
+
+      if (data.results.SE) {
+        return data.results.SE;
+      } else {
+        return undefined;
+      }
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   setType(e: MouseEvent) {
