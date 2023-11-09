@@ -9,9 +9,9 @@
     <title>Random Movie / Series</title>
 </head>
 <body>
-    <div class="container">
+    <div class="container max-width">
     <h1 class="mb-20">Don't know what to watch?</h1>
-    <h3>This page generates a random popular movie or series</h3>
+    <h3 class="mb-20">Generate a random, popular movie or series.</h3>
 
     <div class="user-input">
         <form>
@@ -21,10 +21,12 @@
                 <label for="tv-radio">Series</label>
                 <input type="radio" name="movie-or-tv" value="tv" id="tv-radio">
             </div>
-            <button type="submit" id="btn-submit">Generate movie</button>
+            <button type="submit" class="disabled" id="btn-submit" disabled >Choose movie or series</button>
         </form>
     </div>
-
+    <div class="max-width">
+    <img src="./img/spinner.gif" alt="Loading" id="spinner">
+</div>
     <div class="response-container">
     </div>
     </div>

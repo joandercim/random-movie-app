@@ -10,6 +10,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 class App {
     constructor() {
+        this.rentHTML = '';
+        this.buyHTML = '';
+        this.radioMovie = document.getElementById('movie-radio');
+        this.radioTV = document.getElementById('tv-radio');
+        this.overlayDiv = document.querySelector('.overlay');
+        this.imgURL = 'https://image.tmdb.org/t/p/original';
+        this.responseContainer = document.querySelector('.response-container');
+        this.submitBtn = document.querySelector('button');
+        this.movieLabel = document.querySelector('label:first-of-type');
+        this.seriesLabel = document.querySelector('label:last-of-type');
         this.options = {
             method: 'GET',
             headers: {
@@ -30,14 +40,38 @@ class App {
             throw new Error('Form or button element does not exist');
         }
     }
+    setType(e) {
+        if (e.target && e.target instanceof HTMLElement && this.submitBtn) {
+            if (e.target.className !== 'buttons') {
+                if (e.target.id === 'movie-radio') {
+                    this.movieLabel.style.border = '1px solid yellow';
+                    this.seriesLabel.style.border = '1px solid transparent';
+                    this.submitBtn.textContent = 'Generate Movie';
+                    this.submitBtn.classList.remove('disabled');
+                    this.submitBtn.removeAttribute('disabled');
+                }
+                else if (e.target.id === 'tv-radio') {
+                    this.movieLabel.style.border = '1px solid transparent';
+                    this.seriesLabel.style.border = '1px solid yellow';
+                    this.submitBtn.textContent = 'Generate Series';
+                    this.submitBtn.classList.remove('disabled');
+                    this.submitBtn.removeAttribute('disabled');
+                }
+            }
+        }
+    }
+    showSpinner() {
+        document.getElementById('spinner').style.display = 'block';
+    }
+    hideSpinner() {
+        document.getElementById('spinner').style.display = 'none';
+    }
     handleSubmit(e) {
         e.preventDefault();
-        const radioTV = document.getElementById('tv-radio');
-        const radioMovie = document.getElementById('movie-radio');
-        if (radioTV.checked) {
+        if (this.radioTV.checked) {
             this.fetchMoviesOrSeries('tv');
         }
-        else if (radioMovie.checked) {
+        else if (this.radioMovie.checked) {
             this.fetchMoviesOrSeries('movie');
         }
         else {
@@ -47,35 +81,40 @@ class App {
     }
     fetchMoviesOrSeries(type) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield fetch(`https://api.themoviedb.org/3/${type}/popular`, this.options);
+            this.buyHTML = '';
+            this.rentHTML = '';
+            this.responseContainer ? (this.responseContainer.innerHTML = '') : null;
+            this.showSpinner();
+            // Fetch popular movies or series
             try {
+                const res = yield fetch(`https://api.themoviedb.org/3/${type}/popular`, this.options);
                 if (!res.ok) {
-                    throw new Error(`Response was not ok. Error: ${Error}`);
+                    throw new Error(`Response was not ok. Status: ${res.status}`);
                 }
                 const data = yield res.json();
                 const { results } = data;
                 const randomNumber = Math.floor(Math.random() * results.length);
-                if (type === 'tv') {
-                    this.displaySeries(results[randomNumber]);
-                }
-                else {
-                    this.displayMovie(results[randomNumber]);
-                }
+                // Display random movie or series
+                this.displayResults(results[randomNumber], type);
             }
             catch (error) {
-                console.log(error);
+                console.error('Error in fetchMoviesOrSeries: ' + error);
+                throw error;
             }
         });
     }
-    displaySeries(show) {
+    displayResults(data, type) {
         var _a, _b;
         return __awaiter(this, void 0, void 0, function* () {
-            const streamingAt = yield this.checkIsStreaming('tv', show.id);
+            let showOrMovie = '';
+            type === 'tv' ? (showOrMovie = 'series') : (showOrMovie = 'movie');
+            // Check if movie or series is available for streaming.
+            const streamingAt = yield this.checkIsStreaming(type, data.id);
             if (streamingAt !== undefined) {
                 this.streamingServicesRent = streamingAt.rent;
                 this.streamingServicesBuy = streamingAt.buy;
                 this.rentHTML = `
-      <h5>Rent series at:</h5>
+      <h5>Rent ${showOrMovie} at:</h5>
       <ul>
       ${(_a = this.streamingServicesRent) === null || _a === void 0 ? void 0 : _a.map((service) => {
                     return `<li>${service.provider_name}</li>`;
@@ -83,7 +122,7 @@ class App {
       </ul>
       `;
                 this.buyHTML = `
-      <h5>Buy series at:</h5>
+      <h5>Buy ${showOrMovie} at:</h5>
       <ul>
       ${(_b = this.streamingServicesBuy) === null || _b === void 0 ? void 0 : _b.map((service) => {
                     return `<li>${service.provider_name}</li>`;
@@ -91,122 +130,54 @@ class App {
       </ul>
       `;
             }
-            const imgUrl = `https://image.tmdb.org/t/p/w500${show.poster_path}`;
-            const releaseDate = show.first_air_date;
-            const responseContainer = document.querySelector('.response-container');
+            this.hideSpinner();
             // Set backdrop
-            const overlayDiv = document.querySelector('.overlay');
-            overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${show.backdrop_path})`;
+            this.overlayDiv.style.backgroundImage = `url(${this.imgURL}${data.backdrop_path})`;
             // Set information
-            responseContainer.innerHTML = `
-          <img src="${imgUrl}" class="poster" alt="${show.name}">
-          <div class="information">
-            <h2>${show.name}</h2>
-                <p><i class="fa-solid fa-star"></i>${show.vote_average.toFixed(1)}/10</p>
-                <p class="air-date">First Air Date: ${releaseDate}</p>
-                <p>${show.overview}</p>
-                <div class="streaming-services">
-                <div class="rent">
-                  ${this.streamingServicesRent ? this.rentHTML : ''}
+            if (this.responseContainer) {
+                this.responseContainer.innerHTML = `
+            <img src="${this.imgURL + data.poster_path}" class="poster" alt="${data.name}">
+            <div class="information">
+              <h2>${type === 'movie' ? data.title : data.name}</h2>
+                  <p><i class="fa-solid fa-star"></i>${data.vote_average.toFixed(1)}/10</p>
+                  <p class="air-date">${type === 'movie'
+                    ? `Release Date: ${data.release_date}`
+                    : `First Air Date: ${data.first_air_date}`}</p>
+                  <p>${data.overview === ''
+                    ? 'No overview available.'
+                    : data.overview}</p>
+                  <div class="streaming-services">
+                  <div class="rent">
+                    ${this.streamingServicesRent
+                    ? this.rentHTML
+                    : 'Not available for rent.'}
+                  </div>
+                  <div class="buy">
+                    ${this.streamingServicesBuy
+                    ? this.buyHTML
+                    : 'Not available for purchase.'}
+                  </div>
                 </div>
-                <div class="buy">
-                  ${this.streamingServicesBuy ? this.buyHTML : ''}
-                </div>
-              </div>
-          </div>
-          `;
-        });
-    }
-    displayMovie(movie) {
-        var _a, _b;
-        return __awaiter(this, void 0, void 0, function* () {
-            const streamingAt = yield this.checkIsStreaming('movie', movie.id);
-            if (streamingAt !== undefined) {
-                this.streamingServicesRent = streamingAt.rent;
-                this.streamingServicesBuy = streamingAt.buy;
-                this.rentHTML = `
-      <h5>Rent movie at:</h5>
-      <ul>
-      ${(_a = this.streamingServicesRent) === null || _a === void 0 ? void 0 : _a.map((service) => {
-                    return `<li>${service.provider_name}</li>`;
-                }).join('')}
-      </ul>
-      `;
-                this.buyHTML = `
-      <h5>Buy movie at:</h5>
-      <ul>
-      ${(_b = this.streamingServicesBuy) === null || _b === void 0 ? void 0 : _b.map((service) => {
-                    return `<li>${service.provider_name}</li>`;
-                }).join('')}
-      </ul>
-      `;
-            }
-            const releaseDate = movie.release_date;
-            const imgUrl = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-            const overlayDiv = document.querySelector('.overlay');
-            const responseContainer = document.querySelector('.response-container');
-            // Set backdrop
-            overlayDiv.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${movie.backdrop_path})`;
-            // Set information
-            responseContainer.innerHTML = `
-        <img src="${imgUrl}" class="poster" alt="${movie.title}">
-        <div class="information">
-        <h2>${movie.title}</h2>
-            <p><i class="fa-solid fa-star"></i>${movie.vote_average.toFixed(1)}/10</p>
-            <p class="air-date">Release Date: ${releaseDate}</p>
-            <p>${movie.overview}</p>
-            <div class="streaming-services">
-              <div class="rent">
-                ${this.streamingServicesRent ? this.rentHTML : 'This movie is not available for streaming in Sweden.'}
-              </div>
-              <div class="buy">
-                ${this.streamingServicesBuy ? this.buyHTML : 'This movie is not available for purchase in Sweden.'}
-              </div>
             </div>
-        </div>
-        `;
+            `;
+            }
         });
     }
     checkIsStreaming(type, id) {
         return __awaiter(this, void 0, void 0, function* () {
-            const res = yield fetch(`https://api.themoviedb.org/3/${type}/${id}/watch/providers?justWatch`, this.options);
             try {
+                const res = yield fetch(`https://api.themoviedb.org/3/${type}/${id}/watch/providers?justWatch`, this.options);
                 if (!res.ok) {
-                    throw new Error(`Response was not ok. Error: ${Error}`);
+                    throw new Error(`Response was not ok. Status: ${res.status}`);
                 }
                 const data = yield res.json();
-                if (data.results.SE) {
-                    return data.results.SE;
-                }
-                else {
-                    return undefined;
-                }
+                return data.results.SE || undefined;
             }
             catch (error) {
-                console.log(error);
+                console.error('Error: ' + error);
+                throw error;
             }
         });
-    }
-    setType(e) {
-        if (e.target && e.target instanceof HTMLElement) {
-            e.stopPropagation();
-            if (e.target.className !== 'buttons') {
-                if (e.target.id === 'movie-radio') {
-                    const activeRadio = document.querySelector('label:first-of-type');
-                    const inactiveRadio = document.querySelector('label:last-of-type');
-                    activeRadio.style.border = '1px solid yellow';
-                    inactiveRadio.style.border = '1px solid transparent';
-                    document.querySelector('button').textContent = 'Generate Movie';
-                }
-                else if (e.target.id === 'tv-radio') {
-                    const inactiveRadio = document.querySelector('label:first-of-type');
-                    inactiveRadio.style.border = '1px solid transparent';
-                    const activeRadio = document.querySelector('label:last-of-type');
-                    activeRadio.style.border = '1px solid yellow';
-                    document.querySelector('button').textContent = 'Generate Series';
-                }
-            }
-        }
     }
 }
 const app = new App();

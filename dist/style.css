@@ -15,10 +15,14 @@ body {
     margin-bottom: 20px;
 }
 
-.container {
+.max-width {
     max-width: 1000px;
+}
+
+.container {
     padding: 2rem;
     margin: 20px auto;
+    position: relative;
 }
 
 form input {
@@ -38,6 +42,12 @@ form label {
     border: 1px solid transparent;
     transition: border .4s ease-in-out;
     cursor: pointer;
+}
+
+form button.disabled {
+    opacity: .7;
+    background-color: #ffffff0a;
+    cursor: not-allowed;
 }
 
 form label:hover {
@@ -142,6 +152,12 @@ i.fa-star {
     opacity: .1;
 }
 
+img#spinner {
+    width: 40px;
+    margin: 30px auto;
+    display: none;
+}
+
 @media (max-width: 777px) {
     .response-container {
         flex-direction: column;
@@ -152,7 +168,11 @@ i.fa-star {
     }
 
     .response-container img {
-        margin: 0 auto;
+        margin: 0 auto 20px;
         width: 80%;
+    }
+
+    .streaming-services {
+        flex-direction: column;
     }
 }
